@@ -19,8 +19,8 @@ export default function PokemonSheet({ ref }: { ref: React.Ref<PokemonSheetHandl
     ref,
     () => ({
       open: (name: string) => {
+        setShownPokemon(name);
         setIndex(1);
-        setTimeout(() => setShownPokemon(name), 900);
       },
     }),
     [],
