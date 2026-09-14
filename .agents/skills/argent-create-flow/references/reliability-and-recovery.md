@@ -60,15 +60,15 @@ Give the flow a `launch:` step as usual. On iOS the launch waits the full devtoo
 - Raw `tool: await-ui-element` accessibility checks.
 - Point taps or long-presses derived from `describe`, each named by an echo.
 - A point focus tap plus a raw text-only `keyboard` with `delayMs: 500`, and a second raw `keyboard` with `key: "enter"` to submit.
-- Raw swipes with `settle: true` because `scroll-to` needs the missing flow tree. Momentum-free scrolling keeps later coordinate taps valid.
+- Raw swipes with `momentum: false` because `scroll-to` needs the missing flow tree. Momentum-free scrolling keeps later coordinate taps valid. `momentum: false` needs `durationMs` of at least 150 and is rejected below it, so keep the 300 default or raise it.
 
-Every point tap or long-press in such a flow passes **carrying a warning** for as long as the app serves no tree: each [selector-less gesture](flow-yaml.md#directives) dispatches unsettled. Nothing here repairs it. Accept the warnings, read each green as "the gesture was sent, not that it landed", and put an explicit `wait:` or a raw `tool: await-ui-element` before a gesture that follows a transition. Raw `tool:` steps take no settle, so they never carry that warning.
+Every point tap, long-press or coordinate swipe in such a flow passes **carrying a warning** for as long as the app serves no tree: each [selector-less gesture](flow-yaml.md#directives) dispatches unsettled. Nothing here repairs it. Accept the warnings, read each green as "the gesture was sent, not that it landed", and put an explicit `wait:` or a raw `tool: await-ui-element` before a gesture that follows a transition. Raw `tool:` steps take no settle, so they never carry that warning.
 
 A recorded wait carries a different warning: it adds about one second and reports that the runner tree is unavailable. That warning is expected too. Keep the wait as a raw `tool:` step.
 
 Report that the flow has no flow tree and its coordinates are not portable. It cannot satisfy the QA contract. Report the artifact and platform blocker instead.
 
-A normally injectable app that is broken in the environment gets the same coordinate-only treatment, but not the same launch: there the `launch:` step fails, since the gate withholds its verdict only for a bundle id argent refuses outright. Start such a flow with a raw `tool: restart-app`, which terminates and relaunches without the readiness gate, and accept that the result is a **fragment** — its first non-echo step is not `launch:`, so the runner never classifies it as e2e, and it cannot complete `argent-qa-flows`, which requires a leading `launch:`. Report the blocker rather than labeling that fallback a completed QA test.
+A normally injectable app that is broken in the environment gets the same coordinate-only treatment, but not the same launch: there the `launch:` step fails, since the gate withholds its verdict only for a bundle id argent refuses outright. Start such a flow with a raw `tool: restart-app`, which terminates and relaunches without the readiness gate, and accept that the result is a **fragment** — its first step that is neither `echo:` nor `script:` is not `launch:`, so the runner never classifies it as e2e, and it cannot complete `argent-qa-flows`, which requires a leading `launch:`. Report the blocker rather than labeling that fallback a completed QA test.
 
 ## Tree source recovery on Android, Chromium, and Vega
 
