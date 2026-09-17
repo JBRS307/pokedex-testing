@@ -1,0 +1,46 @@
+name: Test report
+description: Report a result from testing a specific tagged build.
+title: "[Test] "
+labels: ["testing"]
+body:
+  - type: input
+    id: tag
+    attributes:
+      label: Tag name
+      description: The exact git tag that was tested (e.g. `argent-cloud-test`).
+      placeholder: argent-cloud-test
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the result of the test.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1.
+        2.
+        3.
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options:
+        - iOS
+        - Android
+        - Web
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      render: shell
