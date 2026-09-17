@@ -72,4 +72,12 @@ jobs:
             --app-bundle pokedex.tar.gz \
             --rn-debug "$TAG_URL" \
             --log-usage \
-            --stream
+            --stream | tee argent-cloud-output.md
+
+      - name: Upload model output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: argent-cloud-output-issue-${{ github.event.issue.number }}
+          path: argent-cloud-output.md
+          if-no-files-found: warn
