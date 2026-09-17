@@ -66,18 +66,20 @@ jobs:
           ARGENT_BACKEND_IP: ${{ secrets.ARGENT_BACKEND_IP }}
         run: |
           chmod +x ./argent-cloud
+          mkdir -p argent-cloud-output
           ./argent-cloud issue-repro \
             --title "$TITLE" \
             --body "$BODY" \
             --app-bundle pokedex.tar.gz \
             --rn-debug "$TAG_URL" \
             --log-usage \
-            --stream | tee argent-cloud-output.md
+            --stream=argent-cloud-output/stream.md \
+            | tee argent-cloud-output/output.md
 
       - name: Upload model output
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: argent-cloud-output-issue-${{ github.event.issue.number }}
-          path: argent-cloud-output.md
+          path: argent-cloud-output/
           if-no-files-found: warn
