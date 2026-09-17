@@ -1,0 +1,75 @@
+name: Argent Cloud issue repro
+
+# GitHub fires `labeled` both when a label is added later and when an issue
+# is opened with the label already on it, so this one trigger covers both.
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: argent-cloud-issue-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  repro:
+    if: github.event.label.name == 'argent-cloud'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Check that a maintainer applied the label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENDER: ${{ github.event.sender.login }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          role=$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$SENDER/permission" --jq .role_name 2>/dev/null || echo none)
+          if [ "$role" != "admin" ] && [ "$role" != "maintain" ]; then
+            echo "::error::$SENDER ($role) is not a maintainer; removing the argent-cloud label."
+            gh issue edit "$ISSUE_NUMBER" -R "$GITHUB_REPOSITORY" --remove-label argent-cloud
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Resolve the tag from the issue body
+        id: tag
+        env:
+          BODY: ${{ github.event.issue.body }}
+        run: |
+          # Issue forms render as "### Tag name\n\n<value>\n\n### ..."
+          tag=$(printf '%s\n' "$BODY" | tr -d '\r' | awk '
+            /^### Tag name[[:space:]]*$/ { found = 1; next }
+            found && /^### / { exit }
+            found && NF { print; exit }
+          ' | tr -d '`' | xargs)
+          if [ -z "$tag" ] || [ "$tag" = "_No response_" ]; then
+            echo "::error::No tag name found in the issue body."
+            exit 1
+          fi
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "::error::Tag '$tag' does not exist in $GITHUB_REPOSITORY."
+            exit 1
+          fi
+          echo "url=https://github.com/$GITHUB_REPOSITORY/tree/$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Run argent-cloud issue-repro
+        env:
+          TITLE: ${{ github.event.issue.title }}
+          BODY: ${{ github.event.issue.body }}
+          TAG_URL: ${{ steps.tag.outputs.url }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SIM_REMOTE_API_KEY: ${{ secrets.SIM_REMOTE_API_KEY }}
+          ARGENT_BACKEND_IP: ${{ secrets.ARGENT_BACKEND_IP }}
+        run: |
+          chmod +x ./argent-cloud
+          ./argent-cloud issue-repro \
+            --title "$TITLE" \
+            --body "$BODY" \
+            --app-bundle pokedex.tar.gz \
+            --rn-debug "$TAG_URL" \
+            --log-usage \
+            --stream
