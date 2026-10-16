@@ -18,9 +18,6 @@ export default function PokemonTabsLayout() {
         <TabTrigger name="map" href="/pokemon/map" asChild>
           <TabButton icon="map">Map</TabButton>
         </TabTrigger>
-        <TabTrigger name="camera" href="/pokemon/camera" asChild>
-          <TabButton icon="camera">Camera</TabButton>
-        </TabTrigger>
       </TabList>
 
       <TabSlot />

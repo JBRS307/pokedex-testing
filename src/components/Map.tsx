@@ -17,9 +17,6 @@ import useUserLocation from '@/hooks/useUserLocation';
 import { Pin } from '@/api/pins';
 import usePins from '@/hooks/usePins';
 import * as Crypto from 'expo-crypto';
-import { PhotoPin, photoUri } from '@/api/photoPins';
-import { Image } from 'expo-image';
-import usePhotoPins from '@/hooks/usePhotoPins';
 
 const DEFAULT_REGION: Region = {
   latitude: 50.04877618022289,
@@ -40,8 +37,6 @@ export default function Map() {
   const { granted, getCoordinate } = useUserLocation();
 
   const { pins, addPin, removePin } = usePins();
-  const { pins: photoPins, removePhotoPin } = usePhotoPins();
-  const [photoPreview, setPhotoPreview] = useState<PhotoPin | null>(null);
   const inputRef = useRef<PokemonNameInputHandle>(null);
   const sheetRef = useRef<PokemonSheetHandle>(null);
 
@@ -106,34 +101,7 @@ export default function Map() {
             draggable
           />
         ))}
-        {photoPins.map((pin) => (
-          <PhotoMarker key={pin.id} pin={pin} onPress={setPhotoPreview} />
-        ))}
       </MapView>
-
-      {photoPreview !== null && (
-        <View style={styles.previewCard}>
-          <Image
-            source={photoUri(photoPreview.id)}
-            style={styles.previewImage}
-            contentFit="cover"
-          />
-          <View style={styles.previewActions}>
-            <Pressable
-              hitSlop={8}
-              onPress={() => {
-                removePhotoPin(photoPreview.id);
-                setPhotoPreview(null);
-              }}
-            >
-              <MaterialIcons name="delete-outline" size={22} color="#E3350D" />
-            </Pressable>
-            <Pressable hitSlop={8} onPress={() => setPhotoPreview(null)}>
-              <MaterialIcons name="close" size={22} color="#333" />
-            </Pressable>
-          </View>
-        </View>
-      )}
 
       <Pressable style={styles.locateButton} onPress={goToUserLocation}>
         <MaterialIcons name="my-location" size={24} color="#333" />
@@ -177,33 +145,6 @@ function PokemonMarker({ pin, removePin, onPress }: PokemonMarkerProps) {
       onDragStart={() => removePin(pin.id)}
       tracksViewChanges={false}
     />
-  );
-}
-
-type PhotoMarkerProps = {
-  pin: PhotoPin;
-  onPress: (pin: PhotoPin) => void;
-};
-
-function PhotoMarker({ pin, onPress }: PhotoMarkerProps) {
-  const [trackViewChanges, setTrackViewChanges] = useState(true);
-
-  return (
-    <Marker
-      draggable
-      coordinate={pin.coordinate}
-      tracksViewChanges={trackViewChanges}
-      onPress={() => onPress(pin)}
-    >
-      <View style={styles.photoMarker}>
-        <Image
-          source={photoUri(pin.id)}
-          style={styles.photoMarkerImage}
-          contentFit="cover"
-          onLoadEnd={() => setTrackViewChanges(false)}
-        />
-      </View>
-    </Marker>
   );
 }
 
@@ -325,40 +266,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 8,
-  },
-  photoMarker: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    borderWidth: 3,
-    borderColor: '#fff',
-    overflow: 'hidden',
-    backgroundColor: '#ddd',
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  photoMarkerImage: { width: '100%', height: '100%' },
-  previewCard: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 96,
-    borderRadius: 14,
-    backgroundColor: '#fff',
-    overflow: 'hidden',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  previewImage: { width: '100%', height: 180 },
-  previewActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 16,
-    padding: 12,
   },
 });
