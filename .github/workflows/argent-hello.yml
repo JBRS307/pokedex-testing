@@ -1,0 +1,29 @@
+name: Argent hello comment
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: PR or issue number
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download argent-cloud
+        run: |
+          curl -sSfL -o argent-cloud https://github.com/software-mansion-labs/argent-cloud-releases/releases/download/202610201156/argent-cloud
+          chmod +x argent-cloud
+
+      - name: Post comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SIM_ROUTER_API_KEY: ${{ secrets.SIM_ROUTER_API_KEY }}
+          ARGENT_BACKEND_IP: ${{ secrets.ARGENT_BACKEND_IP }}
+        run: ./argent-cloud comment --comment "Hello world" "${{ github.repository }}#${{ github.event.pull_request.number || inputs.pr }}"
