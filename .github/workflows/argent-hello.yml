@@ -23,7 +23,8 @@ jobs:
 
       - name: Post comment
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: "THIS SHOULD FAIL"
           SIM_ROUTER_API_KEY: ${{ secrets.SIM_ROUTER_API_KEY }}
           ARGENT_BACKEND_IP: ${{ secrets.ARGENT_BACKEND_IP }}
         run: ./argent-cloud comment --comment "Hello world" "${{ github.repository }}#${{ github.event.pull_request.number || inputs.pr }}"
