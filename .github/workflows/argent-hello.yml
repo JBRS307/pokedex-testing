@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Download argent-cloud
         run: |
-          curl -sSfL -o argent-cloud https://github.com/software-mansion-labs/argent-cloud-releases/releases/download/202610201243/argent-cloud
+          curl -sSfL -o argent-cloud https://github.com/software-mansion-labs/argent-cloud-releases/releases/latest/download/argent-cloud
           chmod +x argent-cloud
 
       - name: Post comment
