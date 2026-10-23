@@ -31,5 +31,8 @@ jobs:
           ARGENT_GITHUB_OIDC_TOKEN=$(curl -sSf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=argent" | jq -r .value)
           echo "::add-mask::$ARGENT_GITHUB_OIDC_TOKEN"
+          # Tamper with the signature; this should fail
+          ARGENT_GITHUB_OIDC_TOKEN="${ARGENT_GITHUB_OIDC_TOKEN%.*}.$(tr 'A-Za-z' 'B-ZAb-za' <<< "${ARGENT_GITHUB_OIDC_TOKEN##*.}")"
           export ARGENT_GITHUB_OIDC_TOKEN
           ./argent-cloud comment --comment "Hello world" "${{ github.repository }}#${{ github.event.pull_request.number || inputs.pr }}"
+
